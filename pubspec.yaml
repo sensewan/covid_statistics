@@ -28,7 +28,11 @@ dependencies:
   cupertino_icons: ^1.0.2
 
   xml: ^5.1.2
-
+  get: ^4.2.3
+  # API 통신 도움
+  dio: ^4.0.0
+  # 숫자 포멧팅 관련
+  intl : ^0.17.0
 
 
 
