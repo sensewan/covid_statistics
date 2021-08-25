@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: '코로나19',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.white,
       ),
 
       // ↱앱 실행 될 때 컨트롤러 생성하기

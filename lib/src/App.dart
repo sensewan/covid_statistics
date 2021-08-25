@@ -1,9 +1,15 @@
+import 'package:covid_statistics/src/canvas/arrow_clip_path.dart';
+import 'package:covid_statistics/src/components/CovidStatisticsView.dart';
 import 'package:covid_statistics/src/controller/CovidStatisticsController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class App extends GetView<CovidStatisticsController> {
-  const App({Key? key}) : super(key: key);
+  App({Key? key}) : super(key: key);
+
+  late double safeAreaSize;  // 맨 위 safeArea 부분의 크기
+  late double appBarSize;    // 앱바 크기
+  late double headerTopZone;  // 위에거 다 합친 크
 
   Widget infoWidget(String title, String value){
     return
@@ -18,33 +24,191 @@ class App extends GetView<CovidStatisticsController> {
       );
   }
 
+  // 백그라운드 배경, 코로나 이미지, 메인 확진자 수 나타내
+  List<Widget> _background(){
+    return [
+      // 백그라운드 배경 그라데이션 주기 위한 Container
+      Container(
+            decoration: BoxDecoration(
+              // ↱그라데이션 주기
+              gradient: LinearGradient(
+                begin: Alignment .centerRight,
+                end: Alignment.centerLeft,
+                colors:[
+                  Colors.grey,
+                  Colors.blue,
+                ],
+              ),
+            ),
+          ),
+
+          // 바이러스 이미지 부분
+          Positioned(
+            left: -110,
+            top: headerTopZone + 40,
+            child: Container(
+              child: Image.asset(
+                "assets/covid_img.png",
+                width: Get.size.width * 0.7,
+              ),
+            ),
+          ),
+
+          // 기준날짜 부분
+          Positioned(
+            top: headerTopZone + 10,
+            // left 0, righht 0 잡은 후 -> 아래 container를 center로 감싸면 -> 가운데 정렬 완성
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Color(0xff195f68),
+                ),
+                child: Text(
+                  "날짜 기준",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 대표 확진자, 증가수, 총 확진자수 보여주기
+          Positioned(
+            top: headerTopZone+60,
+            right: 40,
+            child: CovidStatisticsView(
+              title: "확진자",
+              addedCount: 1629,
+              totalCount: 187362,
+              upDown: ArrowDirection.UP,
+              titleColor: Colors.white,
+              subValueColor: Colors.white,
+            ),
+          ),
+    ];
+  }
+
+  // 격리해제, 검사중, 사망자 나타내기
+  Widget _todayStatistics(){
+    return Row(
+      children: [
+        Expanded(
+          child: CovidStatisticsView(
+            title: "격리해제",
+            addedCount: 1629,
+            totalCount: 187362,
+            upDown: ArrowDirection.UP,
+            dense: true,
+          ),
+        ),
+        // 간격마자 세로 줄 만들기
+        Container(
+          height: 60,
+          child: VerticalDivider(color: Color(0xffc7c7c7),),
+        ),
+        Expanded(
+          child: CovidStatisticsView(
+            title: "검사중",
+            addedCount: 1629,
+            totalCount: 187362,
+            upDown: ArrowDirection.DOWN,
+            dense: true,
+          ),
+        ),
+        Container(
+          height: 60,
+          child: VerticalDivider(color: Color(0xffc7c7c7),),
+        ),
+        Expanded(
+          child: CovidStatisticsView(
+            title: "사망자",
+            addedCount: 1629,
+            totalCount: 187362,
+            upDown: ArrowDirection.MIDDLE,
+            dense: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  // 차트 부분기
+  Widget _covidTrendsChart(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch, // 왼쪽 정렬 효과
+      children: [
+        Text(
+          "확진자 추이",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    safeAreaSize = Get.mediaQuery.padding.top;   // 핸드폰 맨 위의 safearea의 크기를 구할 수 있음(시간 등등의 부분)기
+    appBarSize = AppBar().preferredSize.height;  // 앱바 사이즈 구하기
+    headerTopZone = safeAreaSize + appBarSize;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("코로나 일별 현황"),
+        // ↱AppBar 배경을 투명하게 만듦
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Icon(Icons.menu, color: Colors.white,),
+        title: Text("코로나 일별 현황", style: TextStyle(color: Colors.white),),
         centerTitle: true,
+        actions: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: Icon(
+              Icons.notifications,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
-
-      body: Container(
-        padding: const EdgeInsets.all(15),
-        child: Obx(() {
-          var info = controller.covidStatistic.value;
-          return Column(
-            children: [
-              infoWidget("기준일", info.stateDt ?? ''),
-              infoWidget("기준시간", info.stateTime ?? ''),
-              infoWidget("확진자 수", info.decideCnt ?? ''),
-              infoWidget("검사진행 수", info.examCnt ?? ''),
-              infoWidget("사망자 수", info.deathCnt ?? ''),
-              infoWidget("치료중 환자 수", info.careCnt ?? ''),
-              infoWidget("결과 음성 수", info.resutlNegCnt ?? ''),
-              infoWidget("누적 검사 수", info.accExamCnt ?? ''),
-              infoWidget("누적 검사 완료 수", info.accExamCompCnt ?? ''),
-              infoWidget("누적 확진률", info.accDefRate ?? ''),
-            ],
-          );
-        }),
+      // ↱ AppBar 부분을 body가 침범하도록 함
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          ..._background(),
+          Positioned(
+            top: headerTopZone + 200, left: 0, right: 0, bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(25),
+                  child: Column(
+                    children: [
+                      _todayStatistics(),
+                      SizedBox(height: 20,),
+                      _covidTrendsChart(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
