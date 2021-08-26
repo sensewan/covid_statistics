@@ -85,13 +85,16 @@ class App extends GetView<CovidStatisticsController> {
           Positioned(
             top: headerTopZone+60,
             right: 40,
-            child: Obx(()=>CovidStatisticsView(
-              title: "확진자",
-              addedCount: controller.todayData.calcDecideCnt!,
-              totalCount: controller.todayData.decideCnt ?? 0,
-              upDown: controller.calculrateUpDown(controller.todayData.calcDecideCnt!),
-              titleColor: Colors.white,
-              subValueColor: Colors.white,
+            child: Obx(()=>
+              controller.todayData.decideCnt == null
+              ?CircularProgressIndicator()
+              :CovidStatisticsView(
+                title: "확진자",
+                addedCount: controller.todayData.calcDecideCnt!,
+                totalCount: controller.todayData.decideCnt ?? 0,
+                upDown: controller.calculrateUpDown(controller.todayData.calcDecideCnt!),
+                titleColor: Colors.white,
+                subValueColor: Colors.white,
             ),),
           ),
     ];
@@ -100,45 +103,47 @@ class App extends GetView<CovidStatisticsController> {
   // 격리해제, 검사중, 사망자 나타내기
   Widget _todayStatistics(){
     return Obx(()=>
-      Row(
-      children: [
-        Expanded(
-          child: CovidStatisticsView(
-            title: "격리해제",
-            addedCount: controller.todayData.calcClearCnt!,
-            totalCount: controller.todayData.clearCnt ?? 0,
-            upDown: controller.calculrateUpDown(controller.todayData.calcClearCnt!),
-            dense: true,
+      controller.todayData.clearCnt == null || controller.todayData.examCnt == null || controller.todayData.deathCnt == null
+      ?CircularProgressIndicator()
+      :Row(
+        children: [
+          Expanded(
+            child: CovidStatisticsView(
+              title: "격리해제",
+              addedCount: controller.todayData.calcClearCnt!,
+              totalCount: controller.todayData.clearCnt ?? 0,
+              upDown: controller.calculrateUpDown(controller.todayData.calcClearCnt!),
+              dense: true,
+            ),
           ),
-        ),
-        // 간격마자 세로 줄 만들기
-        Container(
-          height: 60,
-          child: VerticalDivider(color: Color(0xffc7c7c7),),
-        ),
-        Expanded(
-          child: CovidStatisticsView(
-            title: "검사중",
-            addedCount: controller.todayData.calcExamCnt!,
-            totalCount: controller.todayData.examCnt ?? 0,
-            upDown: controller.calculrateUpDown(controller.todayData.calcExamCnt!),
-            dense: true,
+          // 간격마자 세로 줄 만들기
+          Container(
+            height: 60,
+            child: VerticalDivider(color: Color(0xffc7c7c7),),
           ),
-        ),
-        Container(
-          height: 60,
-          child: VerticalDivider(color: Color(0xffc7c7c7),),
-        ),
-        Expanded(
-          child: CovidStatisticsView(
-            title: "사망자",
-            addedCount: controller.todayData.calcDeathCnt!,
-            totalCount: controller.todayData.deathCnt ?? 0,
-            upDown: controller.calculrateUpDown(controller.todayData.calcDeathCnt!),
-            dense: true,
+          Expanded(
+            child: CovidStatisticsView(
+              title: "검사중",
+              addedCount: controller.todayData.calcExamCnt!,
+              totalCount: controller.todayData.examCnt ?? 0,
+              upDown: controller.calculrateUpDown(controller.todayData.calcExamCnt!),
+              dense: true,
+            ),
           ),
-        ),
-      ],
+          Container(
+            height: 60,
+            child: VerticalDivider(color: Color(0xffc7c7c7),),
+          ),
+          Expanded(
+            child: CovidStatisticsView(
+              title: "사망자",
+              addedCount: controller.todayData.calcDeathCnt!,
+              totalCount: controller.todayData.deathCnt ?? 0,
+              upDown: controller.calculrateUpDown(controller.todayData.calcDeathCnt!),
+              dense: true,
+            ),
+          ),
+        ],
     ),);
   }
 
