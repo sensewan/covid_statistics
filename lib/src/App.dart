@@ -1,6 +1,8 @@
 import 'package:covid_statistics/src/canvas/arrow_clip_path.dart';
+import 'package:covid_statistics/src/components/CovidBarChart.dart';
 import 'package:covid_statistics/src/components/CovidStatisticsView.dart';
 import 'package:covid_statistics/src/controller/CovidStatisticsController.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -67,13 +69,14 @@ class App extends GetView<CovidStatisticsController> {
                   borderRadius: BorderRadius.circular(20),
                   color: Color(0xff195f68),
                 ),
-                child: Text(
-                  "날짜 기준",
+                child: Obx(()=>
+                  Text(
+                  controller.todayData.standardDayString,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold
                   ),
-                ),
+                ),),
               ),
             ),
           ),
@@ -82,28 +85,29 @@ class App extends GetView<CovidStatisticsController> {
           Positioned(
             top: headerTopZone+60,
             right: 40,
-            child: CovidStatisticsView(
+            child: Obx(()=>CovidStatisticsView(
               title: "확진자",
-              addedCount: 1629,
-              totalCount: 187362,
-              upDown: ArrowDirection.UP,
+              addedCount: controller.todayData.calcDecideCnt!,
+              totalCount: controller.todayData.decideCnt ?? 0,
+              upDown: controller.calculrateUpDown(controller.todayData.calcDecideCnt!),
               titleColor: Colors.white,
               subValueColor: Colors.white,
-            ),
+            ),),
           ),
     ];
   }
 
   // 격리해제, 검사중, 사망자 나타내기
   Widget _todayStatistics(){
-    return Row(
+    return Obx(()=>
+      Row(
       children: [
         Expanded(
           child: CovidStatisticsView(
             title: "격리해제",
-            addedCount: 1629,
-            totalCount: 187362,
-            upDown: ArrowDirection.UP,
+            addedCount: controller.todayData.calcClearCnt!,
+            totalCount: controller.todayData.clearCnt ?? 0,
+            upDown: controller.calculrateUpDown(controller.todayData.calcClearCnt!),
             dense: true,
           ),
         ),
@@ -115,9 +119,9 @@ class App extends GetView<CovidStatisticsController> {
         Expanded(
           child: CovidStatisticsView(
             title: "검사중",
-            addedCount: 1629,
-            totalCount: 187362,
-            upDown: ArrowDirection.DOWN,
+            addedCount: controller.todayData.calcExamCnt!,
+            totalCount: controller.todayData.examCnt ?? 0,
+            upDown: controller.calculrateUpDown(controller.todayData.calcExamCnt!),
             dense: true,
           ),
         ),
@@ -128,18 +132,18 @@ class App extends GetView<CovidStatisticsController> {
         Expanded(
           child: CovidStatisticsView(
             title: "사망자",
-            addedCount: 1629,
-            totalCount: 187362,
-            upDown: ArrowDirection.MIDDLE,
+            addedCount: controller.todayData.calcDeathCnt!,
+            totalCount: controller.todayData.deathCnt ?? 0,
+            upDown: controller.calculrateUpDown(controller.todayData.calcDeathCnt!),
             dense: true,
           ),
         ),
       ],
-    );
+    ),);
   }
 
 
-  // 차트 부분기
+  // 차트 위젯
   Widget _covidTrendsChart(){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch, // 왼쪽 정렬 효과
@@ -150,7 +154,21 @@ class App extends GetView<CovidStatisticsController> {
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
-        )
+        ),
+
+        // ↱차트 부분
+        AspectRatio(
+          aspectRatio: 1.7,
+          child: Obx(()=>
+            controller.weekDays.length == 0
+            ? Container()
+            : CovidBarChart(
+              covidDatas: controller.weekDays,
+              maxY: controller.maxDecideValue,
+            ),
+          ),
+        ),
+
       ],
     );
   }
